@@ -1,0 +1,297 @@
+{
+  "modelName": "SPN Servidor Web - M/M/c/K",
+  "places": [
+    {
+      "name": "Vagas",
+      "initialMarking": 20,
+      "stringMarking": "K",
+      "initialStringMarking": "K",
+      "id": "p1",
+      "x": 400,
+      "y": 150
+    },
+    {
+      "name": "Fila",
+      "initialMarking": 0,
+      "stringMarking": "0",
+      "initialStringMarking": "0",
+      "id": "p2",
+      "x": 620,
+      "y": 400
+    },
+    {
+      "name": "Serv",
+      "initialMarking": 2,
+      "stringMarking": "C",
+      "initialStringMarking": "C",
+      "id": "p3",
+      "x": 850,
+      "y": 150
+    },
+    {
+      "name": "Proc",
+      "initialMarking": 0,
+      "stringMarking": "0",
+      "initialStringMarking": "0",
+      "id": "p4",
+      "x": 1080,
+      "y": 400
+    }
+  ],
+  "definitions": [
+    {
+      "name": "C",
+      "type": "INTEGER",
+      "value": "2",
+      "id": "def0"
+    },
+    {
+      "name": "K",
+      "type": "INTEGER",
+      "value": "20",
+      "id": "def1"
+    },
+    {
+      "name": "ATRASO_CHEGADA",
+      "type": "DOUBLE",
+      "value": "0.0666666667",
+      "id": "def2"
+    },
+    {
+      "name": "ATRASO_SERV",
+      "type": "DOUBLE",
+      "value": "0.1",
+      "id": "def3"
+    }
+  ],
+  "rewardMeasures": [
+    {
+      "name": "U",
+      "expression": "((C - E{#Serv}) / C) * 100",
+      "id": "rm0"
+    },
+    {
+      "name": "DP",
+      "expression": "P{#Vagas = 0} * 100",
+      "id": "rm1"
+    },
+    {
+      "name": "TP",
+      "expression": "E{#Proc} / ATRASO_SERV",
+      "id": "rm2"
+    },
+    {
+      "name": "TP_ESPERADA",
+      "expression": "(1 / ATRASO_CHEGADA) * (1 - P{#Vagas = 0})",
+      "id": "rm3"
+    },
+    {
+      "name": "MQT",
+      "expression": "IF E{#Proc} > 0 THEN (E{#Fila} / (E{#Proc} / ATRASO_SERV)) * 1000 ELSE 0",
+      "id": "rm4"
+    },
+    {
+      "name": "MPT",
+      "expression": "IF E{#Proc} > 0 THEN (E{#Proc} / (E{#Proc} / ATRASO_SERV)) * 1000 ELSE 0",
+      "id": "rm5"
+    },
+    {
+      "name": "MRT",
+      "expression": "IF E{#Proc} > 0 THEN ((E{#Fila} + E{#Proc}) / (E{#Proc} / ATRASO_SERV)) * 1000 ELSE 0",
+      "id": "rm6"
+    }
+  ],
+  "transitions": [
+    {
+      "name": "T_Chegada",
+      "type": "TIMED",
+      "firingPolicy": "SINGLE_SERVER",
+      "raceType": "RACE_WITH_ENABLING_MEMORY",
+      "priority": 1,
+      "inputArcs": [
+        {
+          "type": "INPUT",
+          "place": "Vagas",
+          "multiplicity": 1,
+          "weight": 1
+        }
+      ],
+      "outputArcs": [
+        {
+          "type": "OUTPUT",
+          "place": "Fila",
+          "multiplicity": 1,
+          "weight": 1
+        }
+      ],
+      "inhibitorArcs": [],
+      "distribution": {
+        "type": "exponential",
+        "parameters": {
+          "Mean delay": "ATRASO_CHEGADA"
+        }
+      },
+      "id": "t1",
+      "x": 500,
+      "y": 400
+    },
+    {
+      "name": "T_Inicio",
+      "type": "IMMEDIATE",
+      "firingPolicy": "SINGLE_SERVER",
+      "raceType": "RACE_WITH_ENABLING_MEMORY",
+      "priority": 1,
+      "inputArcs": [
+        {
+          "type": "INPUT",
+          "place": "Fila",
+          "multiplicity": 1,
+          "weight": 1
+        },
+        {
+          "type": "INPUT",
+          "place": "Serv",
+          "multiplicity": 1,
+          "weight": 1
+        }
+      ],
+      "outputArcs": [
+        {
+          "type": "OUTPUT",
+          "place": "Proc",
+          "multiplicity": 1,
+          "weight": 1
+        }
+      ],
+      "inhibitorArcs": [],
+      "weight": 1,
+      "id": "t2",
+      "x": 850,
+      "y": 400
+    },
+    {
+      "name": "T_Serv",
+      "type": "TIMED",
+      "firingPolicy": "INFINITY_SERVER",
+      "raceType": "RACE_WITH_ENABLING_MEMORY",
+      "priority": 1,
+      "inputArcs": [
+        {
+          "type": "INPUT",
+          "place": "Proc",
+          "multiplicity": 1,
+          "weight": 1
+        }
+      ],
+      "outputArcs": [
+        {
+          "type": "OUTPUT",
+          "place": "Serv",
+          "multiplicity": 1,
+          "weight": 1
+        },
+        {
+          "type": "OUTPUT",
+          "place": "Vagas",
+          "multiplicity": 1,
+          "weight": 1
+        }
+      ],
+      "inhibitorArcs": [],
+      "distribution": {
+        "type": "exponential",
+        "parameters": {
+          "Mean delay": "ATRASO_SERV"
+        }
+      },
+      "id": "t3",
+      "x": 1300,
+      "y": 400
+    }
+  ],
+  "visualElements": [],
+  "arcs": [
+    {
+      "id": "a1",
+      "source": "p1",
+      "target": "t1",
+      "type": "normal",
+      "weight": "1",
+      "sourceAnchor": "right",
+      "targetAnchorAngle": 180,
+      "lineType": "straight"
+    },
+    {
+      "id": "a2",
+      "source": "t1",
+      "target": "p2",
+      "type": "normal",
+      "weight": "1",
+      "sourceAnchor": "right",
+      "targetAnchorAngle": 180,
+      "lineType": "straight"
+    },
+    {
+      "id": "a3",
+      "source": "p2",
+      "target": "t2",
+      "type": "normal",
+      "weight": "1",
+      "sourceAnchor": "right",
+      "targetAnchorAngle": 180,
+      "lineType": "straight"
+    },
+    {
+      "id": "a4",
+      "source": "p3",
+      "target": "t2",
+      "type": "normal",
+      "weight": "1",
+      "sourceAnchor": "right",
+      "targetAnchorAngle": 180,
+      "lineType": "straight"
+    },
+    {
+      "id": "a5",
+      "source": "t2",
+      "target": "p4",
+      "type": "normal",
+      "weight": "1",
+      "sourceAnchor": "right",
+      "targetAnchorAngle": 180,
+      "lineType": "straight"
+    },
+    {
+      "id": "a6",
+      "source": "p4",
+      "target": "t3",
+      "type": "normal",
+      "weight": "1",
+      "sourceAnchor": "right",
+      "targetAnchorAngle": 180,
+      "lineType": "straight"
+    },
+    {
+      "id": "a7",
+      "source": "t3",
+      "target": "p3",
+      "type": "normal",
+      "weight": "1",
+      "sourceAnchor": "right",
+      "targetAnchorAngle": 180,
+      "lineType": "straight"
+    },
+    {
+      "id": "a8",
+      "source": "t3",
+      "target": "p1",
+      "type": "normal",
+      "weight": "1",
+      "sourceAnchor": "right",
+      "targetAnchorAngle": 180,
+      "lineType": "straight"
+    }
+  ],
+  "chartSquare": false,
+  "executions": []
+}
